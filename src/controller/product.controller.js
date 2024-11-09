@@ -1,5 +1,4 @@
 import { User } from "../database/models/user.models.js";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 export const createUser = async (req, res) => {
@@ -7,7 +6,6 @@ export const createUser = async (req, res) => {
     const { username, phonenumber, password } = req.body;
     const inputValidation = [!username, !password, !phonenumber];
     const existingUser = await User.findOne({ phonenumber: phonenumber });
-    const saltRounds = 10;
 
     if (!inputValidation.every(() => true)) {
       return res.status(500).json({ error: "Please fillout all the fields" });
@@ -52,7 +50,6 @@ export const userUpdateProfile = async (req, res) => {
     const { phonenumber, username, password, bio } = req.body;
 
     const user = await User.findOne({ phonenumber: phonenumber });
-    const userID = user["_id"];
 
     const passwordValidatoin = await bcrypt.compare(
       phonenumber,
@@ -72,25 +69,16 @@ export const userUpdateProfile = async (req, res) => {
   }
 };
 
-export const userValidateLogin = async (req, res) => {
+export const userTest = async (req, res) => {
   try {
-    const { phonenumber, password } = req.body;
-    const user = await User.findOne({ phonenumber: phonenumber });
+    const user = User.findeOnde({ phonenumber: "0000" });
 
     if (!user) {
-      return res.status(401).json({ error: "User not found" });
+      throw new Error("User not found");
     }
 
-    await bcrypt.compareSync(password, user.password, (err, result) => {
-      console.log(result);
-      if (err) {
-        return res.status(500).json({ error: err });
-      }
-
-      const token = jwt.sign({ phonenumber: user.phonenumber }, "secret");
-      res.status(200).json({ token });
-    });
-  } catch (error) {
-    res.status(500).json({ validation_error: "Internal server error" });
+    res.status(200).json({ user });
+  } catch (err) {
+    res.status(500).json({ err: "User not found" });
   }
 };

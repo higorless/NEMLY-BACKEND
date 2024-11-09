@@ -6,8 +6,11 @@ export const userValidateLogin = async (req, res) => {
   try {
     const { phonenumber, password } = req.body;
     const user = await User.findOne({ phonenumber: phonenumber }).select(
-      "password"
+      "_id phonenumber"
     );
+
+    console.log(user["_id"].toString());
+    console.log(user.phonenumber);
 
     if (!user) {
       return res.status(401).json({ error: "User not found" });
@@ -18,9 +21,10 @@ export const userValidateLogin = async (req, res) => {
         return res.status(500).json({ error: err });
       }
 
-      console.log(result);
-
-      const token = jwt.sign({ phonenumber: user.phonenumber }, "secret");
+      const token = jwt.sign(
+        { phonenumber: user.phonenumber, id: user["_id"].toString() },
+        "JWT_SECRET"
+      );
       res.status(200).json({ token });
     });
   } catch (error) {
@@ -30,38 +34,31 @@ export const userValidateLogin = async (req, res) => {
   }
 };
 
-export const userLogged = async (req, res) => {
-  //verify the JWT token generated for the user
-  jwt.verify(req.token, "privatekey", (err, authorizedData) => {
-    if (err) {
-      //If error send Forbidden (403)
-      console.log("ERROR: Could not connect to the protected route");
-      res.sendStatus(403);
-    } else {
-      //If token is successfully verified, we can send the autorized data
-      res.json({
-        message: "Successful log in",
-        authorizedData,
-      });
-      console.log("SUCCESS: Connected to protected route");
-    }
-  });
-};
-
 export const verifyToken = (req, res, next) => {
-  const token = req.headers["authorization"];
+  const headers = req.headers["authorization"];
 
-  console.log(token);
-
-  if (!token) {
+  if (!headers) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  jwt.verify(token, "secret", (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    req.user = decoded;
-    next();
-  });
+  const bearer = headers.split(" ");
+  const token = bearer[1];
+
+  try {
+    jwt.verify(token, "JWT_SECRET", (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      console.log(decoded);
+
+      req.user = {
+        id: decoded.id,
+        phonenumber: decoded.phonenumber,
+      };
+      return next();
+    });
+  } catch (err) {
+    res.status(500).json({ err: err });
+  }
 };
