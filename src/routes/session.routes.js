@@ -1,8 +1,5 @@
 import { Router } from "express";
-import {
-  verifyToken,
-  userValidateLogin,
-} from "../controller/auth.controller.js";
+import { userValidateLogin } from "../controller/sessions.controller.js";
 
 const router = Router();
 

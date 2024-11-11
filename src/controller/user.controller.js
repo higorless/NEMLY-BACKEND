@@ -1,4 +1,5 @@
 import { User } from "../database/models/user.models.js";
+import { UserFriend } from "../database/models/friends.models.js";
 import bcrypt from "bcryptjs";
 
 export const createUser = async (req, res) => {
@@ -34,7 +35,7 @@ export const createUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    const { confirm, phonenumber } = req.body;
+    const { phonenumber } = req.body;
     User.findOneAndDelete({ phonenumber: phonenumber }).exec();
     res.status(200).json({ success: "User deleted" });
   } catch (err) {
@@ -69,16 +70,30 @@ export const userUpdateProfile = async (req, res) => {
   }
 };
 
-export const userTest = async (req, res) => {
+export const addFriend = async (req, res) => {
   try {
-    const user = User.findeOnde({ phonenumber: "0000" });
+    const { phonenumber } = req.body;
+    const userID = req.user["_doc"]._id;
 
-    if (!user) {
-      throw new Error("User not found");
+    const friendToAdd = await User.findOne({ phonenumber });
+
+    if (!friendToAdd) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json({ user });
+    const currentUser = await User.findById(userID);
+
+    if (currentUser.friends.includes(friendToAdd._id)) {
+      return res.status(400).json({ error: "Friend already added" });
+    }
+
+    currentUser.friends.push(friendToAdd._id);
+
+    console.log(currentUser);
+    // await currentUser.save();
+
+    return res.status(200).json({ success: "Friend added successfully" });
   } catch (err) {
-    res.status(500).json({ err: "User not found" });
+    return res.status(500).json({ error: err.message });
   }
 };

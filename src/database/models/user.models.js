@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 const { Schema } = mongoose;
 
-var UserSchema = new Schema(
+const UserSchema = new Schema(
   {
     username: String,
     phonenumber: {
@@ -23,6 +23,12 @@ var UserSchema = new Schema(
       type: String,
       required: false,
     },
+    friends: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );

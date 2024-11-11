@@ -1,15 +1,19 @@
 import { Router } from "express";
-import mongoose from "mongoose";
-import { createUser, deleteUser } from "../controller/product.controller.js";
-import { userValidateLogin } from "../controller/auth.controller.js";
-import { userTest } from "../controller/product.controller.js";
-import { verifyToken } from "../controller/auth.controller.js";
+import {
+  createUser,
+  deleteUser,
+  addFriend,
+} from "../controller/user.controller.js";
+import { userValidateLogin } from "../controller/sessions.controller.js";
+import { verifyToken } from "../middlewares/ensureAuthenticated.js";
 
 const router = Router();
 
 router.post("/register", createUser);
 router.post("/validation", userValidateLogin);
+router.post("/add", verifyToken, addFriend);
+// verifyToken => MIDDLEWARE
+
 router.delete("/delete", deleteUser);
-router.get("/test", verifyToken, userTest);
 
 export default router;
