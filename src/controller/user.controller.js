@@ -89,9 +89,6 @@ export const addFriend = async (req, res) => {
 
     currentUser.friends.push(friendToAdd._id);
 
-    console.log(currentUser);
-    // await currentUser.save();
-
     return res.status(200).json({ success: "Friend added successfully" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
