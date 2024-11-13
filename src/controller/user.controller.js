@@ -1,6 +1,5 @@
 import { User } from "../database/models/user.models.js";
-import { UserFriend } from "../database/models/friends.models.js";
-import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
 export const createUser = async (req, res) => {
   try {
@@ -48,25 +47,32 @@ export const deleteUser = async (req, res) => {
 
 export const userUpdateProfile = async (req, res) => {
   try {
-    const { phonenumber, username, password, bio } = req.body;
+    const { phonenumber, username, password, bio, avatar } = req.body;
+    const validatedUserId = req.user._doc._id;
 
-    const user = await User.findOne({ phonenumber: phonenumber });
+    const user = await User.findOne({ _id: validatedUserId });
 
-    const passwordValidatoin = await bcrypt.compare(
-      phonenumber,
-      user.phonenumber
-    );
+    const updatedData = {
+      username: username,
+      phonenumber: phonenumber,
+      avatar: user.avatar ?? avatar,
+      bio: user.bio ?? bio,
+    };
 
-    if (passwordValidatoin) {
-    }
-
-    if (existingNumber) {
-      return res.status(404).json({ err: "Phonenumber alreay exists" });
-    }
+    await user.updateOne(updatedData);
+    res.status(200).json({ success: "User updated successfully" });
   } catch (err) {
-    return res
-      .status(500)
-      .json({ err: "Something went wrong trying to update the user" });
+    if (
+      err.code === 11000 &&
+      Object.keys(err.keyValue).includes("phonenumber")
+    ) {
+      return res.status(400).json({ error: "Phone number already registered" });
+    }
+
+    console.error("Error updating user:", err);
+    return res.status(500).json({
+      error: "Something went wrong while updating the user",
+    });
   }
 };
 
