@@ -9,8 +9,6 @@ export const getMessages = async (req, res) => {
     const senderObjectId = new mongoose.Types.ObjectId(senderID);
     const receiverObjectId = new mongoose.Types.ObjectId(receiverID);
 
-    console.log(senderObjectId);
-
     const chatMessages = await Chat.findOne({
       participants: { $all: [senderObjectId, receiverObjectId] },
     }).populate("messages");

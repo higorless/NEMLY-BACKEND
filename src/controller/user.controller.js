@@ -1,5 +1,4 @@
 import { User } from "../database/models/user.models.js";
-import mongoose from "mongoose";
 
 export const createUser = async (req, res) => {
   try {
@@ -79,7 +78,7 @@ export const userUpdateProfile = async (req, res) => {
 export const addFriend = async (req, res) => {
   try {
     const { phonenumber } = req.body;
-    const userID = req.user["_doc"]._id;
+    const userID = req.user._doc._id;
 
     const friendToAdd = await User.findOne({ phonenumber });
 
@@ -94,9 +93,28 @@ export const addFriend = async (req, res) => {
     }
 
     currentUser.friends.push(friendToAdd._id);
+    currentUser.save();
 
     return res.status(200).json({ success: "Friend added successfully" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+};
+
+export const getFriendList = async (req, res) => {
+  try {
+    const validatedUserId = req.user._doc._id;
+    const user = await User.findOne({ _id: validatedUserId });
+
+    const userFriendlist = await user.populate("friends");
+
+    if (!userFriendlist) {
+      throw new Error("Something went Wrong");
+    }
+
+    res.status(200).json(userFriendlist.friends);
+  } catch (err) {
+    res.status(500).json({ err: "Error trying to fetch" });
+    console.log(err.message);
   }
 };
