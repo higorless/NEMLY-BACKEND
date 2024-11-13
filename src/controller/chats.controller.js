@@ -1,27 +1,27 @@
-import { User } from "../database/models/user.models.js";
-import { Chat } from "../database/models/chat.models";
 import mongoose from "mongoose";
+import { Chat } from "../database/models/chat.models.js";
 
-export const chatCreateAndRetriever = async (req, res) => {
+export const getMessages = async (req, res) => {
   try {
-    const { receiverID } = req.body;
-    const validatedUserObjectId = req.user["_doc"]._id;
-    const receiverObjectId = mongoose.Types.ObjectId("receiverID");
-    const chatID = `${validatedUserObjectId.toString()}` + `${receiverID}`;
+    const { id: receiverID } = req.params;
+    const senderID = req.user._doc._id.toString();
 
-    const chat = await Chat.create({
-      chatID: chatID,
-      user_1: validatedUserObjectId,
-      user_2: receiverObjectId,
-      messages: [],
-    });
+    const senderObjectId = new mongoose.Types.ObjectId(senderID);
+    const receiverObjectId = new mongoose.Types.ObjectId(receiverID);
 
-    if (!chat) {
-      throw new Error("Error trying to register a new user");
+    const allMessages = await Chat.findOne({
+      participants: { $all: [senderObjectId, receiverObjectId] },
+    }).populate("Message");
+
+    return console.log(allMessages);
+
+    if (!conversation) {
+      throw new Error("Chat not found");
     }
 
-    res.status(200).json({ success: "Chat created" });
+    res.status(200).json({ success: "Chat retrieved", data: allMessages });
   } catch (err) {
-    res.status(500).json({ server_error: "Error trying to create chat" });
+    res.status(500).json({ server_error: "Error trying to retrieve the chat" });
+    console.log(err);
   }
 };

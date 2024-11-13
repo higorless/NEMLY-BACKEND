@@ -3,9 +3,6 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const MessageSchema = new Schema({
-  messageID: {
-    type: Schema.Types.ObjectId,
-  },
   messageSender: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -15,8 +12,8 @@ const MessageSchema = new Schema({
     ref: "User",
   },
   message: {
-    tpye: String,
-    required: true,
+    type: String,
+    default: true,
   },
 });
 
