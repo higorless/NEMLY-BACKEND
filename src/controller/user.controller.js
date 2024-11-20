@@ -3,13 +3,11 @@ import { User } from "../database/models/user.models.js";
 export const createUser = async (req, res) => {
   try {
     const { username, phonenumber, password } = req.body;
-    const inputValidation = [!username, !password, !phonenumber];
     const existingUser = await User.findOne({ phonenumber: phonenumber });
 
-    if (!inputValidation.every(() => true)) {
-      return res.status(500).json({ error: "Please fillout all the fields" });
+    if (!username || !password || !phonenumber) {
+      return res.status(400).json({ error: "Please fill out all the fields" });
     }
-
     if (existingUser) {
       return res.status(500).json({ error: "User already exists" });
     }
