@@ -1,4 +1,5 @@
 import { User } from "../database/models/user.models.js";
+import { io } from "../socket/socket.js";
 
 export const createUser = async (req, res) => {
   try {
@@ -91,8 +92,10 @@ export const addFriend = async (req, res) => {
     }
 
     currentUser.friends.push(friendToAdd._id);
-    currentUser.save();
+    friendToAdd.friends.push(currentUser._id);
 
+    currentUser.save();
+    friendToAdd.save();
     return res.status(200).json({ success: "Friend added successfully" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
