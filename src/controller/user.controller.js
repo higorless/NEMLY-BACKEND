@@ -1,5 +1,7 @@
 import { User } from "../database/models/user.models.js";
+import { getReceiverSocketId } from "../socket/socket.js";
 import { io } from "../socket/socket.js";
+import bcrypt from "bcryptjs";
 
 export const createUser = async (req, res) => {
   try {
@@ -48,17 +50,35 @@ export const userUpdateProfile = async (req, res) => {
     const { phonenumber, username, password, bio, avatar } = req.body;
     const validatedUserId = req.user._doc._id;
 
-    const user = await User.findOne({ _id: validatedUserId });
+    const user = await User.findById(validatedUserId);
 
     const updatedData = {
-      username: username,
-      phonenumber: phonenumber,
-      avatar: user.avatar ?? avatar,
-      bio: user.bio ?? bio,
+      username: username ?? user.username,
+      phonenumber: phonenumber ?? user.phonenumber,
+      password: password ?? user.password,
+      bio: bio ?? user.bio,
+      avatar: avatar ?? user.avatar,
     };
 
-    await user.updateOne(updatedData);
-    res.status(200).json({ success: "User updated successfully" });
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updatedData.password = hashedPassword;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      validatedUserId,
+      { $set: updatedData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({
+      success: "User updated successfully",
+      user: updatedUser,
+    });
   } catch (err) {
     if (
       err.code === 11000 &&
@@ -68,7 +88,7 @@ export const userUpdateProfile = async (req, res) => {
     }
 
     console.error("Error updating user:", err);
-    return res.status(500).json({
+    res.status(500).json({
       error: "Something went wrong while updating the user",
     });
   }
@@ -94,8 +114,25 @@ export const addFriend = async (req, res) => {
     currentUser.friends.push(friendToAdd._id);
     friendToAdd.friends.push(currentUser._id);
 
-    currentUser.save();
-    friendToAdd.save();
+    await Promise.all([currentUser.save(), friendToAdd.save()]);
+
+    const currentUserSocketId = getReceiverSocketId(userID);
+    const friendSocketId = getReceiverSocketId(friendToAdd._id.toString());
+
+    if (currentUserSocketId) {
+      io.to(currentUserSocketId).emit("friendAdded", {
+        friendId: friendToAdd._id,
+        friendName: friendToAdd.username,
+      });
+    }
+
+    if (friendSocketId) {
+      io.to(friendSocketId).emit("friendAdded", {
+        friendId: currentUser._id,
+        friendName: currentUser.username,
+      });
+    }
+
     return res.status(200).json({ success: "Friend added successfully" });
   } catch (err) {
     return res.status(500).json({ error: err.message });

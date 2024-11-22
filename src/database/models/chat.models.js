@@ -23,4 +23,14 @@ const ChatSchema = new Schema(
   { timestamps: true }
 );
 
+ChatSchema.pre("remove", async function (next) {
+  try {
+    // Exclui todas as mensagens associadas a este chat
+    await mongoose.model("Message").deleteMany({ _id: { $in: this.messages } });
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 export const Chat = mongoose.model("Chats", ChatSchema);

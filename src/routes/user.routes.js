@@ -13,6 +13,7 @@ router.get("/friends", verifyToken, getFriendList);
 router.post("/register", createUser);
 router.post("/edit", verifyToken, userUpdateProfile);
 router.post("/add", verifyToken, addFriend);
+router.put("/update", verifyToken, userUpdateProfile);
 // verifyToken => MIDDLEWARE
 
 router.delete("/delete", deleteUser);

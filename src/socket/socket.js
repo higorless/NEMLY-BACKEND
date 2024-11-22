@@ -23,13 +23,9 @@ io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
   if (userId != "undefined") userSocketMap[userId] = socket.id;
 
-  socket.on("newFriendAdded", (friendId) => {
-    console.log(`New friend added: ${friendId}`);
-    io.emit("friendAdded", { friendId });
-  });
-
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
     delete userSocketMap[userId];
+    if (userId != "undefined") userSocketMap[userId] = socket.id;
   });
 });
