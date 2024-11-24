@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 
 export const createUser = async (req, res) => {
   try {
-    const { username, phonenumber, password } = req.body;
+    const { username, phonenumber, password, bio } = req.body;
     const existingUser = await User.findOne({ phonenumber: phonenumber });
 
     if (!username || !password || !phonenumber) {
@@ -19,6 +19,7 @@ export const createUser = async (req, res) => {
       username: username,
       phonenumber: phonenumber,
       password: password,
+      bio: bio,
     });
 
     if (!user) {
