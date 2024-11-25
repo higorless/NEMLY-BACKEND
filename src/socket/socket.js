@@ -6,7 +6,7 @@ export const app = express();
 export const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: [process.env.SOCKET_FRONTEND_URL],
+    origin: [process.env.FRONTEND_URL],
     methods: ["GET", "POST"],
     credentials: true,
   },

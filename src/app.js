@@ -14,14 +14,13 @@ dotenv.config();
 
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.FRONTEND_URL,
     optionsSuccessStatus: 200,
     credentials: true,
   })
 );
 
 app.use(express.json());
-
 app.use("/api/user", userRoutes);
 app.use("/api/login", userLogin);
 app.use("/api/sendmessage", messageSend);
