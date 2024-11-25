@@ -1,13 +1,16 @@
-import express from "express";
 import { dbConnection } from "./database/mongoose/index.js";
+import { app, server } from "./socket/socket.js";
+import express from "express";
 import userRoutes from "./routes/user.routes.js";
 import userLogin from "./routes/session.routes.js";
 import messageSend from "./routes/message.routes.js";
 import getMessages from "./routes/chat.routes.js";
 import cors from "cors";
-import { app, server } from "./socket/socket.js";
+import dotenv from "dotenv";
 
-const port = 3000;
+const port = process.env.SERVER_PORT || 3000;
+
+dotenv.config();
 
 app.use(
   cors({
@@ -16,7 +19,7 @@ app.use(
     credentials: true,
   })
 );
-// app.options("*", cors());
+
 app.use(express.json());
 
 app.use("/api/user", userRoutes);
